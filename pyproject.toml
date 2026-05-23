@@ -1,0 +1,11 @@
+[project]
+name = "task-decomposer"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "dotenv>=0.9.9",
+    "google-genai>=2.5.0",
+    "requests>=2.34.2",
+]
