@@ -6,3 +6,7 @@ class AIProvider(ABC):
     @abstractmethod
     def generate_steps(self, task: str) -> list[str]:
         pass
+
+    @abstractmethod
+    def summarize_task(self, task: str) -> str:
+        pass

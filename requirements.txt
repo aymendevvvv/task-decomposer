@@ -1,0 +1,4 @@
+dotenv==0.9.9
+google-auth==2.53.0
+google-genai==2.6.0
+requests==2.34.2uv 

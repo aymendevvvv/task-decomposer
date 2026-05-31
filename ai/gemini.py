@@ -7,6 +7,10 @@ from config import config
 from ai.base import AIProvider
 
 
+def _log(message):
+    print(f"[gemini] {message}", flush=True)
+
+
 class GeminiProvider(AIProvider):
 
     def __init__(self):
@@ -15,13 +19,17 @@ class GeminiProvider(AIProvider):
 
     def build_prompt(self, task):
         return f"""
-Break this task into 5-8 ADHD-friendly steps.
+Break the following task into ADHD-friendly steps.
 
 Rules:
-- Each step < 10 minutes
-- Very specific
-- Start with a verb
-- Return ONLY a numbered list
+- Determine the number of steps based on the task's complexity and difficulty. 
+- You MUST generate between 3 and 8 steps. No more, no less.
+- Simple tasks should have fewer steps (e.g., 3-4), while complex tasks should have more (e.g., 6-8).
+- Each step should take less than 10 minutes to complete.
+- Be very specific and actionable.
+- Start each step with a strong verb.
+- Include a relevant emoji at the start of each step.
+- Return ONLY a numbered list of steps.
 
 Task: "{task}"
 """
@@ -41,6 +49,7 @@ Task: "{task}"
         return steps
 
     def generate_steps(self, task: str) -> list[str]:
+        _log("Generating subtasks")
         prompt = self.build_prompt(task)
 
         contents = [
@@ -59,4 +68,32 @@ Task: "{task}"
             if chunk.parts and chunk.parts[0].text:
                 response_text += chunk.parts[0].text
 
-        return self.parse(response_text)
+        steps = self.parse(response_text)
+        _log(f"Generated {len(steps)} parsed subtask(s)")
+        return steps
+
+    def summarize_task(self, task: str) -> str:
+        _log("Summarizing task title")
+        prompt = f"""
+Summarize this task into a very short, punchy title (max 6-8 words).
+The goal is to display it in a small UI header.
+
+Task: "{task}"
+
+Summary:
+"""
+        contents = [
+            types.Content(
+                role="user",
+                parts=[types.Part.from_text(text=prompt)],
+            )
+        ]
+
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=contents,
+        )
+
+        summary = response.text.strip().strip("*")
+        _log(f"Summary ready: {summary}")
+        return summary
